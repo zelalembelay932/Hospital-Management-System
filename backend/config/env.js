@@ -1,20 +1,19 @@
-require('dotenv').config();
+function validateEnv() {
+  const requiredEnv = [
+    "MONGODB_URI",
+    "JWT_SECRET",
+    "ADMIN_EMAIL",
+    "ADMIN_PASSWORD"
+  ];
 
-const requiredEnvVars = [
-    'MONGODB_URI',
-    'JWT_SECRET',
-    'PORT',
-    'ADMIN_EMAIL',
-    'ADMIN_PASSWORD'
-];
+  const missing = requiredEnv.filter(key => !process.env[key]);
 
-const validateEnv = () => {
-    const missing = requiredEnvVars.filter(envVar => !process.env[envVar]);
-    
-    if (missing.length > 0) {
-        console.error('Missing required environment variables:', missing);
-        process.exit(1);
-    }
-};
+  if (missing.length > 0) {
+    console.error("Missing required environment variables:", missing);
+    process.exit(1);
+  }
+
+  console.log("Environment variables validated");
+}
 
 module.exports = { validateEnv };
