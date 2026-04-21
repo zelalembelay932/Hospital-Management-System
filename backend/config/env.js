@@ -1,4 +1,4 @@
-function validateEnv() {
+exports.validateEnv = () => {
   const requiredEnv = [
     "MONGODB_URI",
     "JWT_SECRET",
@@ -6,14 +6,10 @@ function validateEnv() {
     "ADMIN_PASSWORD"
   ];
 
-  const missing = requiredEnv.filter(key => !process.env[key]);
+  const missing = requiredEnv.filter(env => !process.env[env]);
 
   if (missing.length > 0) {
     console.error("Missing required environment variables:", missing);
     process.exit(1);
   }
-
-  console.log("Environment variables validated");
-}
-
-module.exports = { validateEnv };
+};
