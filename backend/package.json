@@ -25,6 +25,7 @@
     "nodemailer": "^7.0.11",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "xss-clean": "^0.1.4"
+    "xss-clean": "^0.1.4",
+    "mongodb": "^6.0.0"
   }
 }
