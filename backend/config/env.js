@@ -1,4 +1,6 @@
 exports.validateEnv = () => {
+  const hasEnv = (key) => Object.prototype.hasOwnProperty.call(process.env, key);
+
   const requiredPairs = [
     { primary: "MYSQL_DATABASE", fallback: "DB_NAME" },
     { primary: "MYSQL_USER", fallback: "DB_USER" },
@@ -7,11 +9,11 @@ exports.validateEnv = () => {
   ];
 
   const missing = requiredPairs
-    .filter(({ primary, fallback }) => !process.env[primary] && !process.env[fallback])
+    .filter(({ primary, fallback }) => !hasEnv(primary) && !hasEnv(fallback))
     .map(({ primary, fallback }) => `${primary} or ${fallback}`);
 
   const requiredSingle = ["JWT_SECRET", "ADMIN_EMAIL", "ADMIN_PASSWORD"];
-  const missingSingle = requiredSingle.filter((key) => !process.env[key]);
+  const missingSingle = requiredSingle.filter((key) => !hasEnv(key) || process.env[key] === "");
 
   const allMissing = missing.concat(missingSingle);
 
