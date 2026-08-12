@@ -1,42 +1,40 @@
 const Notification = require('../models/Notification');
 
-// @desc    Get user notifications
-// @route   GET /api/notifications
-// @access  Private
 exports.getNotifications = async (req, res) => {
   try {
     const { page = 1, limit = 20, unreadOnly } = req.query;
-    const userId = req.user.id;
-    
-    let query = { userId, isDeleted: false };
-    
+    const userId = req.user.id || req.user.userId;
+
+    const where = { userId, isDeleted: false };
     if (unreadOnly === 'true') {
-      query.isRead = false;
+      where.isRead = false;
     }
-    
-    const skip = (page - 1) * limit;
-    
-    const notifications = await Notification.find(query)
-      .sort({ createdAt: -1, priority: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-    
-    const total = await Notification.countDocuments(query);
-    const unreadCount = await Notification.countDocuments({ 
-      userId, 
-      isRead: false,
-      isDeleted: false 
+
+    const notifications = await Notification.findAll({
+      where,
+      order: [ ['createdAt', 'DESC'], ['priority', 'DESC'] ],
+      limit: parseInt(limit, 10),
+      offset: (parseInt(page, 10) - 1) * parseInt(limit, 10)
     });
-    
+
+    const total = await Notification.count({ where });
+    const unreadCount = await Notification.count({
+      where: {
+        userId,
+        isRead: false,
+        isDeleted: false
+      }
+    });
+
     res.status(200).json({
       success: true,
       count: notifications.length,
       unreadCount,
       pagination: {
         total,
-        page: parseInt(page),
+        page: parseInt(page, 10),
         pages: Math.ceil(total / limit),
-        limit: parseInt(limit)
+        limit: parseInt(limit, 10)
       },
       data: notifications
     });
@@ -49,31 +47,27 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
-// @desc    Mark notification as read
-// @route   PUT /api/notifications/:id/read
-// @access  Private
 exports.markAsRead = async (req, res) => {
   try {
-    const notification = await Notification.findOneAndUpdate(
-      { 
-        _id: req.params.id,
-        userId: req.user.id,
+    const notification = await Notification.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id || req.user.userId,
         isDeleted: false
-      },
-      { 
-        isRead: true,
-        readAt: new Date()
-      },
-      { new: true }
-    );
-    
+      }
+    });
+
     if (!notification) {
       return res.status(404).json({
         success: false,
         message: 'Notification not found'
       });
     }
-    
+
+    notification.isRead = true;
+    notification.readAt = new Date();
+    await notification.save();
+
     res.status(200).json({
       success: true,
       message: 'Notification marked as read',
@@ -88,27 +82,26 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
-// @desc    Mark all notifications as read
-// @route   PUT /api/notifications/read-all
-// @access  Private
 exports.markAllAsRead = async (req, res) => {
   try {
-    const result = await Notification.updateMany(
-      { 
-        userId: req.user.id,
-        isRead: false,
-        isDeleted: false
-      },
-      { 
+    const [updatedCount] = await Notification.update(
+      {
         isRead: true,
         readAt: new Date()
+      },
+      {
+        where: {
+          userId: req.user.id || req.user.userId,
+          isRead: false,
+          isDeleted: false
+        }
       }
     );
-    
+
     res.status(200).json({
       success: true,
-      message: `${result.modifiedCount} notifications marked as read`,
-      modifiedCount: result.modifiedCount
+      message: `${updatedCount} notifications marked as read`,
+      modifiedCount: updatedCount
     });
   } catch (error) {
     res.status(500).json({
@@ -119,29 +112,24 @@ exports.markAllAsRead = async (req, res) => {
   }
 };
 
-// @desc    Delete notification
-// @route   DELETE /api/notifications/:id
-// @access  Private
 exports.deleteNotification = async (req, res) => {
   try {
-    const notification = await Notification.findOneAndUpdate(
-      { 
-        _id: req.params.id,
-        userId: req.user.id
-      },
-      { 
-        isDeleted: true
-      },
-      { new: true }
-    );
-    
+    const notification = await Notification.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id || req.user.userId
+      }
+    });
+
     if (!notification) {
       return res.status(404).json({
         success: false,
         message: 'Notification not found'
       });
     }
-    
+
+    await notification.destroy();
+
     res.status(200).json({
       success: true,
       message: 'Notification deleted successfully'
@@ -155,20 +143,16 @@ exports.deleteNotification = async (req, res) => {
   }
 };
 
-// @desc    Clear all notifications
-// @route   DELETE /api/notifications/clear-all
-// @access  Private
 exports.clearAllNotifications = async (req, res) => {
   try {
-    const result = await Notification.updateMany(
-      { userId: req.user.id },
-      { isDeleted: true }
-    );
-    
+    const deletedCount = await Notification.destroy({
+      where: { userId: req.user.id || req.user.userId }
+    });
+
     res.status(200).json({
       success: true,
-      message: `${result.modifiedCount} notifications cleared`,
-      modifiedCount: result.modifiedCount
+      message: `${deletedCount} notifications cleared`,
+      deletedCount
     });
   } catch (error) {
     res.status(500).json({

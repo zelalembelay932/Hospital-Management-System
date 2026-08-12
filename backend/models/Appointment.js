@@ -1,46 +1,54 @@
-const mongoose = require('mongoose');
+const { Model, DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const appointmentSchema = new mongoose.Schema({
-    patientId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+class Appointment extends Model {}
+
+Appointment.init(
+    {
+        patientId: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        doctorId: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        date: {
+            type: DataTypes.DATEONLY,
+            allowNull: false
+        },
+        time: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        status: {
+            type: DataTypes.ENUM('pending', 'approved', 'cancelled', 'completed'),
+            allowNull: false,
+            defaultValue: 'pending'
+        },
+        amount: {
+            type: DataTypes.DECIMAL(10, 2),
+            allowNull: false,
+            defaultValue: 20
+        },
+        paymentStatus: {
+            type: DataTypes.ENUM('pending', 'paid', 'failed', 'refunded'),
+            allowNull: false,
+            defaultValue: 'pending'
+        },
+        reason: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        notes: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        }
     },
-    doctorId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    date: {
-        type: Date,
-        required: true
-    },
-    time: {
-        type: String,
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'approved', 'cancelled', 'completed'],
-        default: 'pending'
-    },
-    amount: {
-        type: Number,
-        default: 20
-    },
-    paymentStatus: {
-        type: String,
-        enum: ['pending', 'paid', 'failed', 'refunded'],
-        default: 'pending'
-    },
-    reason: {
-        type: String
-    },
-    notes: {
-        type: String
+    {
+        sequelize,
+        modelName: 'Appointment'
     }
-}, {
-    timestamps: true
-});
+);
 
-module.exports = mongoose.model('Appointment', appointmentSchema);
+module.exports = Appointment;

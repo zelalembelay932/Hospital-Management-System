@@ -3,134 +3,135 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Notification = require('../models/Notification');
 
-// Get all notifications for user
 router.get('/', auth, async (req, res) => {
     try {
         const { page = 1, limit = 20, unreadOnly } = req.query;
-        const userId = req.user.userId;
-        
-        let query = { userId };
-        
+        const userId = req.user.id || req.user.userId;
+
+        const where = { userId };
         if (unreadOnly === 'true') {
-            query.isRead = false;
+            where.isRead = false;
         }
-        
-        const notifications = await Notification.find(query)
-            .sort({ createdAt: -1 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit);
-        
-        const total = await Notification.countDocuments(query);
-        const unreadCount = await Notification.countDocuments({ 
-            userId, 
-            isRead: false 
+
+        const notifications = await Notification.findAll({
+            where,
+            order: [['createdAt', 'DESC']],
+            limit: parseInt(limit, 10),
+            offset: (parseInt(page, 10) - 1) * parseInt(limit, 10)
         });
-        
+
+        const total = await Notification.count({ where });
+        const unreadCount = await Notification.count({
+            where: { userId, isRead: false }
+        });
+
         res.json({
             notifications,
             total,
             unreadCount,
             totalPages: Math.ceil(total / limit),
-            currentPage: page
+            currentPage: parseInt(page, 10)
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-// Mark notification as read
 router.put('/:id/read', auth, async (req, res) => {
     try {
-        const notification = await Notification.findOneAndUpdate(
-            { 
-                _id: req.params.id,
-                userId: req.user.userId
-            },
-            { 
-                isRead: true,
-                readAt: new Date()
-            },
-            { new: true }
-        );
-        
+        const notification = await Notification.findOne({
+            where: {
+                id: req.params.id,
+                userId: req.user.id || req.user.userId
+            }
+        });
+
         if (!notification) {
             return res.status(404).json({ message: 'Notification not found' });
         }
-        
-        res.json({ 
+
+        notification.isRead = true;
+        notification.readAt = new Date();
+        await notification.save();
+
+        res.json({
             message: 'Notification marked as read',
-            notification 
+            notification
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-// Mark all notifications as read
 router.put('/read-all', auth, async (req, res) => {
     try {
-        const result = await Notification.updateMany(
-            { 
-                userId: req.user.userId,
-                isRead: false
-            },
-            { 
+        const [updatedCount] = await Notification.update(
+            {
                 isRead: true,
                 readAt: new Date()
+            },
+            {
+                where: {
+                    userId: req.user.id || req.user.userId,
+                    isRead: false
+                }
             }
         );
-        
+
         res.json({
-            message: `${result.modifiedCount} notifications marked as read`,
-            modifiedCount: result.modifiedCount
+            message: `${updatedCount} notifications marked as read`,
+            modifiedCount: updatedCount
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-// Delete notification
 router.delete('/:id', auth, async (req, res) => {
     try {
-        const notification = await Notification.findOneAndDelete({
-            _id: req.params.id,
-            userId: req.user.userId
+        const notification = await Notification.findOne({
+            where: {
+                id: req.params.id,
+                userId: req.user.id || req.user.userId
+            }
         });
-        
+
         if (!notification) {
             return res.status(404).json({ message: 'Notification not found' });
         }
-        
+
+        await notification.destroy();
+
         res.json({ message: 'Notification deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-// Clear all notifications
 router.delete('/clear-all', auth, async (req, res) => {
     try {
-        const result = await Notification.deleteMany({
-            userId: req.user.userId
+        const deletedCount = await Notification.destroy({
+            where: { userId: req.user.id || req.user.userId }
         });
-        
+
         res.json({
-            message: `${result.deletedCount} notifications cleared`,
-            deletedCount: result.deletedCount
+            message: `${deletedCount} notifications cleared`,
+            deletedCount
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-// Get unread count
 router.get('/unread-count', auth, async (req, res) => {
     try {
-        const count = await Notification.countDocuments({
-            userId: req.user.userId,
-            isRead: false
+        const count = await Notification.count({
+            where: {
+                userId: req.user.id || req.user.userId,
+                isRead: false
+            }
         });
-        
+
         res.json({ unreadCount: count });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

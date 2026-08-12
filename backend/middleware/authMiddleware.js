@@ -30,14 +30,15 @@ const protect = async (req, res, next) => {
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // User-ka database-ka ka hel
-        const user = await User.findById(decoded.userId).select('-password');
+        const user = await User.findByPk(decoded.userId, {
+            attributes: { exclude: ['password'] }
+        });
         
         if (!user) {
             return res.status(401).json({ message: 'User not found' });
         }
         
-        req.user = user; // User-ka oo dhan database-ka ka soo qaad
+        req.user = user;
         next();
     } catch (error) {
         if (error.name === 'JsonWebTokenError') {
