@@ -27,5 +27,8 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

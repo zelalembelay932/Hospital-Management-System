@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build:public": "cd public-website && npm run build",
+    "build:admin": "cd admin-dashboard && npm run build",
+    "build:doctor": "cd doctor-dashboard && npm run build",
+    "build": "npm run build:public && npm run build:admin && npm run build:doctor",
     "start": "node server.js"
   }
 }
