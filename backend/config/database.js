@@ -2,12 +2,12 @@ const { Sequelize, Op } = require('sequelize');
 require('dotenv').config();
 
 const sequelize = new Sequelize(
-    process.env.MYSQL_DATABASE,
-    process.env.MYSQL_USER,
-    process.env.MYSQL_PASSWORD,
+    process.env.MYSQL_DATABASE || process.env.DB_NAME,
+    process.env.MYSQL_USER || process.env.DB_USER,
+    process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD,
     {
-        host: process.env.MYSQL_HOST || '127.0.0.1',
-        port: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT, 10) : 3306,
+        host: process.env.MYSQL_HOST || process.env.DB_HOST || '127.0.0.1',
+        port: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT, 10) : (process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306),
         dialect: 'mysql',
         logging: false,
         define: {
