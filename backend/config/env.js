@@ -1,6 +1,8 @@
 exports.validateEnv = () => {
   const requiredEnv = [
-    "MONGODB_URI",
+    "MYSQL_DATABASE",
+    "MYSQL_USER",
+    "MYSQL_HOST",
     "JWT_SECRET",
     "ADMIN_EMAIL",
     "ADMIN_PASSWORD"

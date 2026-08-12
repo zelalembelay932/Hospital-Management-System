@@ -1,35 +1,59 @@
-const mongoose = require('mongoose');
+const { Model, DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const notificationSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+class Notification extends Model {}
+
+Notification.init(
+    {
+        userId: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        title: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        message: {
+            type: DataTypes.TEXT,
+            allowNull: false
+        },
+        type: {
+            type: DataTypes.ENUM('appointment', 'system', 'reminder'),
+            allowNull: false,
+            defaultValue: 'appointment'
+        },
+        isRead: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
+        isDeleted: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
+        relatedId: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        relatedModel: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        priority: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
+        readAt: {
+            type: DataTypes.DATE,
+            allowNull: true
+        }
     },
-    title: {
-        type: String,
-        required: true
-    },
-    message: {
-        type: String,
-        required: true
-    },
-    type: {
-        type: String,
-        enum: ['appointment', 'system', 'reminder'],
-        default: 'appointment'
-    },
-    isRead: {
-        type: Boolean,
-        default: false
-    },
-    relatedId: {
-        type: mongoose.Schema.Types.ObjectId
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    {
+        sequelize,
+        modelName: 'Notification'
     }
-});
+);
 
-module.exports = mongoose.model('Notification', notificationSchema);
+module.exports = Notification;

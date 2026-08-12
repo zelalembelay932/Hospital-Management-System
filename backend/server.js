@@ -7,7 +7,8 @@ const morgan = require('morgan');
 const path = require('path');
 
 const { validateEnv } = require('./config/env');
-const connectDB = require('./config/database');
+const { connectDB } = require('./config/database');
+require('./models');
 
 validateEnv();
 

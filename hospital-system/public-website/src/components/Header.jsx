@@ -25,6 +25,11 @@ const Header = () => {
     { to: '/contact', label: 'Contact', icon: <Phone className="h-4 w-4" /> },
   ];
 
+  const dashboardLinks = [
+    { href: '/admin/', label: 'Admin Login', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { href: '/doctor/', label: 'Doctor Login', icon: <Calendar className="h-4 w-4" /> }
+  ];
+
   return (
     <header className="bg-gradient-to-r from-white to-blue-50 border-b border-blue-100 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,6 +90,16 @@ const Header = () => {
               </div>
             ) : (
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
+                {dashboardLinks.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-blue-50"
+                  >
+                    {link.icon}
+                    {link.label}
+                  </a>
+                ))}
                 <Link
                   to="/login"
                   className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-blue-50"
@@ -175,6 +190,17 @@ const Header = () => {
                   </>
                 ) : (
                   <div className="flex flex-col gap-3 px-4">
+                    {dashboardLinks.map((link) => (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 font-medium"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {link.icon}
+                        {link.label}
+                      </a>
+                    ))}
                     <Link
                       to="/login"
                       className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 font-medium"
@@ -183,7 +209,7 @@ const Header = () => {
                       <User className="h-4 w-4" />
                       Login
                     </Link>
-                    
+                     
                     <Link
                       to="/register"
                       className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 font-medium shadow-sm"
@@ -193,8 +219,7 @@ const Header = () => {
                       Create Account
                     </Link>
                   </div>
-                )}
-              </div>
+                )}              </div>
             </div>
           </div>
         )}

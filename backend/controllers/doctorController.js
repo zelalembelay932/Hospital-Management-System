@@ -1,33 +1,32 @@
+const { Op, sequelize } = require('../config/database');
 const User = require('../models/User');
 const Appointment = require('../models/Appointment');
 const Notification = require('../models/Notification');
 const { sendNotification } = require('../utils/notificationHelper');
 
-// Get all doctors (for patients to choose from)
 exports.getAllDoctors = async (req, res) => {
     try {
         const { specialization, search } = req.query;
-        
-        let query = { role: 'doctor', isActive: true };
-        
-        // Filter by specialization
+        const where = { role: 'doctor', isActive: true };
+
         if (specialization) {
-            query.specialization = new RegExp(specialization, 'i');
+            where.specialization = { [Op.like]: `%${specialization}%` };
         }
-        
-        // Search by name or specialization
+
         if (search) {
-            query.$or = [
-                { name: new RegExp(search, 'i') },
-                { specialization: new RegExp(search, 'i') },
-                { qualification: new RegExp(search, 'i') }
+            where[Op.or] = [
+                { name: { [Op.like]: `%${search}%` } },
+                { specialization: { [Op.like]: `%${search}%` } },
+                { qualification: { [Op.like]: `%${search}%` } }
             ];
         }
-        
-        const doctors = await User.find(query)
-            .select('name specialization qualification experience consultationFee rating profileImage bio')
-            .sort({ 'rating.average': -1 });
-        
+
+        const doctors = await User.findAll({
+            where,
+            attributes: ['id', 'name', 'specialization', 'qualification', 'experience', 'consultationFee', 'rating', 'profileImage', 'bio'],
+            order: [[sequelize.literal("JSON_EXTRACT(rating, '$.average')"), 'DESC']]
+        });
+
         res.status(200).json({
             success: true,
             count: doctors.length,
@@ -42,37 +41,42 @@ exports.getAllDoctors = async (req, res) => {
     }
 };
 
-// Get single doctor by ID
 exports.getDoctorById = async (req, res) => {
     try {
         const doctor = await User.findOne({
-            _id: req.params.id,
-            role: 'doctor',
-            isActive: true
-        }).select('-password -availabilitySlots');
-        
+            where: {
+                id: req.params.id,
+                role: 'doctor',
+                isActive: true
+            },
+            attributes: { exclude: ['password', 'availabilitySlots'] }
+        });
+
         if (!doctor) {
             return res.status(404).json({
                 success: false,
                 message: 'Doctor not found'
             });
         }
-        
-        // Get doctor's available slots for next 7 days
+
         const today = new Date();
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
-        
-        const availableSlots = doctor.availabilitySlots.filter(slot => 
-            slot.date >= today && 
-            slot.date <= nextWeek && 
-            !slot.isBooked
-        );
-        
+
+        const slots = Array.isArray(doctor.availabilitySlots) ? doctor.availabilitySlots : [];
+        const availableSlots = slots.filter((slot) => {
+            const slotDate = new Date(slot.date);
+            return (
+                slotDate >= today &&
+                slotDate <= nextWeek &&
+                !slot.isBooked
+            );
+        });
+
         res.status(200).json({
             success: true,
             data: {
-                ...doctor.toObject(),
+                ...doctor.toJSON(),
                 availableSlots
             }
         });
@@ -85,51 +89,58 @@ exports.getDoctorById = async (req, res) => {
     }
 };
 
-// Doctor dashboard statistics
 exports.getDoctorDashboard = async (req, res) => {
     try {
         const doctorId = req.user.id;
-        
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
-        
-        // Get today's appointments
-        const todaysAppointments = await Appointment.find({
-            doctorId,
-            date: {
-                $gte: today,
-                $lt: tomorrow
-            }
-        }).populate('patientId', 'name phone email');
-        
-        // Get upcoming appointments (next 7 days)
+
+        const todaysAppointments = await Appointment.findAll({
+            where: {
+                doctorId,
+                date: {
+                    [Op.gte]: today,
+                    [Op.lt]: tomorrow
+                }
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'patient',
+                    attributes: ['id', 'name', 'phone', 'email']
+                }
+            ]
+        });
+
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
-        
-        const upcomingAppointments = await Appointment.find({
-            doctorId,
-            date: {
-                $gte: today,
-                $lt: nextWeek
+
+        const upcomingAppointments = await Appointment.findAll({
+            where: {
+                doctorId,
+                date: {
+                    [Op.gte]: today,
+                    [Op.lt]: nextWeek
+                },
+                status: { [Op.in]: ['pending', 'approved'] }
             },
-            status: { $in: ['pending', 'approved'] }
-        })
-        .populate('patientId', 'name phone email')
-        .sort({ date: 1, time: 1 });
-        
-        // Get appointment statistics
-        const totalAppointments = await Appointment.countDocuments({ doctorId });
-        const pendingAppointments = await Appointment.countDocuments({ 
-            doctorId, 
-            status: 'pending' 
+            include: [
+                {
+                    model: User,
+                    as: 'patient',
+                    attributes: ['id', 'name', 'phone', 'email']
+                }
+            ],
+            order: [['date', 'ASC'], ['time', 'ASC']]
         });
-        const approvedAppointments = await Appointment.countDocuments({ 
-            doctorId, 
-            status: 'approved' 
-        });
-        
+
+        const totalAppointments = await Appointment.count({ where: { doctorId } });
+        const pendingAppointments = await Appointment.count({ where: { doctorId, status: 'pending' } });
+        const approvedAppointments = await Appointment.count({ where: { doctorId, status: 'approved' } });
+
         res.status(200).json({
             success: true,
             data: {
@@ -152,35 +163,35 @@ exports.getDoctorDashboard = async (req, res) => {
     }
 };
 
-// Get doctor's appointments
 exports.getDoctorAppointments = async (req, res) => {
     try {
         const { status, date } = req.query;
         const doctorId = req.user.id;
-        
-        let query = { doctorId };
-        
-        // Filter by status
+
+        const where = { doctorId };
         if (status) {
-            query.status = status;
+            where.status = status;
         }
-        
-        // Filter by date
+
         if (date) {
             const searchDate = new Date(date);
             const nextDay = new Date(searchDate);
             nextDay.setDate(searchDate.getDate() + 1);
-            
-            query.date = {
-                $gte: searchDate,
-                $lt: nextDay
-            };
+            where.date = { [Op.gte]: searchDate, [Op.lt]: nextDay };
         }
-        
-        const appointments = await Appointment.find(query)
-            .populate('patientId', 'name phone email gender dateOfBirth')
-            .sort({ date: -1, time: -1 });
-        
+
+        const appointments = await Appointment.findAll({
+            where,
+            include: [
+                {
+                    model: User,
+                    as: 'patient',
+                    attributes: ['id', 'name', 'phone', 'email', 'bio']
+                }
+            ],
+            order: [['date', 'DESC'], ['time', 'DESC']]
+        });
+
         res.status(200).json({
             success: true,
             count: appointments.length,
@@ -195,68 +206,69 @@ exports.getDoctorAppointments = async (req, res) => {
     }
 };
 
-// Update appointment status (approve/cancel)
 exports.updateAppointmentStatus = async (req, res) => {
     try {
         const { appointmentId } = req.params;
         const { status, reason } = req.body;
-        
-        // Validate status
+
         if (!['approved', 'cancelled', 'completed'].includes(status)) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid status'
             });
         }
-        
-        // Find appointment
-        const appointment = await Appointment.findById(appointmentId)
-            .populate('patientId', 'name email')
-            .populate('doctorId', 'name');
-        
+
+        const appointment = await Appointment.findByPk(appointmentId, {
+            include: [
+                {
+                    model: User,
+                    as: 'patient',
+                    attributes: ['id', 'name', 'email']
+                },
+                {
+                    model: User,
+                    as: 'doctor',
+                    attributes: ['id', 'name']
+                }
+            ]
+        });
+
         if (!appointment) {
             return res.status(404).json({
                 success: false,
                 message: 'Appointment not found'
             });
         }
-        
-        // Check if doctor is authorized
-        if (appointment.doctorId._id.toString() !== req.user.id) {
+
+        if (appointment.doctorId !== req.user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to update this appointment'
             });
         }
-        
-        // Update appointment status
+
         appointment.status = status;
         if (reason) appointment.notes = reason;
         await appointment.save();
-        
-        // Update doctor's availability slot
+
         if (status === 'cancelled') {
-            await User.updateOne(
-                { 
-                    _id: appointment.doctorId,
-                    'availabilitySlots.appointmentId': appointmentId
-                },
-                {
-                    $set: { 'availabilitySlots.$.isBooked': false }
-                }
+            const doctor = await User.findByPk(req.user.id, { attributes: ['availabilitySlots'] });
+            const slots = Array.isArray(doctor.availabilitySlots) ? doctor.availabilitySlots : [];
+            doctor.availabilitySlots = slots.map((slot) =>
+                slot.appointmentId === appointmentId ? { ...slot, isBooked: false } : slot
             );
+            await doctor.save();
         }
-        
-        // Create notification for patient
+
         await Notification.create({
-            userId: appointment.patientId._id,
+            userId: appointment.patient.id,
             title: `Appointment ${status}`,
-            message: `Your appointment with Dr. ${appointment.doctorId.name} has been ${status}`,
+            message: `Your appointment with Dr. ${appointment.doctor.name} has been ${status}`,
             type: 'appointment',
             relatedId: appointmentId,
             relatedModel: 'Appointment'
         });
-        
+
         res.status(200).json({
             success: true,
             message: `Appointment ${status} successfully`,
@@ -271,36 +283,34 @@ exports.updateAppointmentStatus = async (req, res) => {
     }
 };
 
-// Add availability slots
 exports.addAvailabilitySlots = async (req, res) => {
     try {
-        const { slots } = req.body; // Array of { date, startTime, endTime }
-        
+        const { slots } = req.body;
+
         if (!slots || !Array.isArray(slots)) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid slots data'
             });
         }
-        
-        const doctor = await User.findById(req.user.id);
-        
-        // Add each slot
-        for (const slot of slots) {
-            doctor.availabilitySlots.push({
-                date: new Date(slot.date),
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                isBooked: false
-            });
-        }
-        
+
+        const doctor = await User.findByPk(req.user.id, { attributes: ['availabilitySlots'] });
+        const currentSlots = Array.isArray(doctor.availabilitySlots) ? doctor.availabilitySlots : [];
+
+        const newSlots = slots.map((slot) => ({
+            date: slot.date,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            isBooked: false
+        }));
+
+        doctor.availabilitySlots = [...currentSlots, ...newSlots];
         await doctor.save();
-        
+
         res.status(200).json({
             success: true,
             message: 'Availability slots added successfully',
-            addedSlots: slots.length
+            addedSlots: newSlots.length
         });
     } catch (error) {
         res.status(500).json({
@@ -311,22 +321,20 @@ exports.addAvailabilitySlots = async (req, res) => {
     }
 };
 
-// Get doctor's availability slots
 exports.getAvailabilitySlots = async (req, res) => {
     try {
-        const doctor = await User.findById(req.user.id);
-        
+        const doctor = await User.findByPk(req.user.id, { attributes: ['availabilitySlots'] });
         const { date } = req.query;
-        let availabilitySlots = doctor.availabilitySlots;
-        
-        // Filter by date if provided
+        let availabilitySlots = Array.isArray(doctor.availabilitySlots) ? doctor.availabilitySlots : [];
+
         if (date) {
             const filterDate = new Date(date);
-            availabilitySlots = availabilitySlots.filter(slot => 
-                slot.date.toDateString() === filterDate.toDateString()
-            );
+            availabilitySlots = availabilitySlots.filter((slot) => {
+                const slotDate = new Date(slot.date);
+                return slotDate.toDateString() === filterDate.toDateString();
+            });
         }
-        
+
         res.status(200).json({
             success: true,
             count: availabilitySlots.length,
@@ -341,22 +349,16 @@ exports.getAvailabilitySlots = async (req, res) => {
     }
 };
 
-// Update doctor profile
 exports.updateDoctorProfile = async (req, res) => {
     try {
-        const updates = req.body;
-        
-        // Remove fields that shouldn't be updated
+        const updates = { ...req.body };
         delete updates.email;
         delete updates.role;
         delete updates.password;
-        
-        const doctor = await User.findByIdAndUpdate(
-            req.user.id,
-            updates,
-            { new: true, runValidators: true }
-        ).select('-password -availabilitySlots');
-        
+
+        await User.update(updates, { where: { id: req.user.id } });
+        const doctor = await User.findByPk(req.user.id, { attributes: { exclude: ['password', 'availabilitySlots'] } });
+
         res.status(200).json({
             success: true,
             message: 'Profile updated successfully',
