@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/admin-dashboard/',
+  base: '/admin/',
+  build: {
+    outDir: '../dist/admin',
+    emptyOutDir: true
+  },
   plugins: [react()],
 })

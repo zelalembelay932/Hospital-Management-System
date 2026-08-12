@@ -24,7 +24,7 @@ import { AuthProvider } from './contexts/AuthContext';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <Toaster position="top-right" />
         <Routes>
           {/* Public Routes */}

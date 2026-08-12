@@ -15,7 +15,7 @@ import PrivateRoute from './components/common/PrivateRoute'
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<PrivateRoute />}>
