@@ -26,8 +26,8 @@ const Header = () => {
   ];
 
   const dashboardLinks = [
-    { href: '/admin/', label: 'Admin Login', icon: <LayoutDashboard className="h-4 w-4" /> },
-    { href: '/doctor/', label: 'Doctor Login', icon: <Calendar className="h-4 w-4" /> }
+    { href: '/admin/login', label: 'Admin Login', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { href: '/doctor/login', label: 'Doctor Login', icon: <Calendar className="h-4 w-4" /> }
   ];
 
   return (
