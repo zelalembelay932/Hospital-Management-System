@@ -6,7 +6,7 @@ import {
   Star, Target, Shield, Activity,
   CheckCircle, TrendingUp, Heart
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 
 const Home = () => {
   const [doctors, setDoctors] = useState([]);
@@ -25,7 +25,7 @@ const Home = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users/doctors');
+      const response = await api.get('/users/doctors');
       const doctorsWithRatings = response.data.slice(0, 4).map(doctor => ({
         ...doctor,
         rating: (Math.random() * 0.5 + 4.5).toFixed(1),

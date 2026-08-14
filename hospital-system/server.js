@@ -3,8 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 5174;
-const PUBLIC_DIR = __dirname;
-const DIST_DIR = path.join(PUBLIC_DIR, 'dist');
+const DIST_DIR = path.join(__dirname, 'dist');
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -16,7 +15,9 @@ const MIME_TYPES = {
   '.jpeg': 'image/jpeg',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
-  '.txt': 'text/plain'
+  '.txt': 'text/plain',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2'
 };
 
 const getContentType = (filePath) => {
@@ -31,19 +32,21 @@ const sendFile = (res, filePath) => {
 };
 
 const selectDistFolder = (urlPath) => {
-  if (urlPath.startsWith('/admin/')) {
-    return { baseDir: path.join(DIST_DIR, 'admin'), urlPrefix: '/admin/' };
+  if (urlPath.startsWith('/admin')) {
+    return { baseDir: path.join(DIST_DIR, 'admin'), urlPrefix: '/admin' };
   }
-  if (urlPath.startsWith('/doctor/')) {
-    return { baseDir: path.join(DIST_DIR, 'doctor'), urlPrefix: '/doctor/' };
+  if (urlPath.startsWith('/doctor')) {
+    return { baseDir: path.join(DIST_DIR, 'doctor'), urlPrefix: '/doctor' };
   }
-  return { baseDir: path.join(DIST_DIR, 'public'), urlPrefix: '/' };
+  return { baseDir: DIST_DIR, urlPrefix: '' };
 };
 
 const resolveFilePath = (baseDir, urlPath, urlPrefix) => {
   let relativePath = urlPath.substring(urlPrefix.length);
-  if (!relativePath || relativePath.endsWith('/')) {
-    relativePath = relativePath + 'index.html';
+  if (!relativePath || relativePath === '/') {
+    relativePath = '/index.html';
+  } else if (relativePath.endsWith('/')) {
+    relativePath += 'index.html';
   }
 
   const filePath = path.join(baseDir, relativePath);
@@ -75,5 +78,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Static host running on http://localhost:${PORT}`);
-  console.log('Serving dist directories from:', DIST_DIR);
+  console.log('Serving consolidated dist from:', DIST_DIR);
+  console.log('  Public website: /');
+  console.log('  Admin dashboard: /admin/');
+  console.log('  Doctor dashboard: /doctor/');
 });

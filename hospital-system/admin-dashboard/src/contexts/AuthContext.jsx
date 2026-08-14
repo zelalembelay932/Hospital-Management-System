@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+﻿import React, { createContext, useState, useContext, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -23,12 +23,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await axios.get(
-        'http://localhost:5000/api/auth/me',
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await api.get('/auth/me');
 
       if (response.data.user.role === 'admin') {
         setUser(response.data.user);
@@ -45,10 +40,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const response = await axios.post(
-      'http://localhost:5000/api/auth/admin/login',
-      { email, password }
-    );
+    const response = await api.post('/auth/admin/login', { email, password });
 
     if (response.data.user.role !== 'admin') {
       throw new Error('Admin access only');
