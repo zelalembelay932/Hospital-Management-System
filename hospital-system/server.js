@@ -1,9 +1,11 @@
-const http = require('http');
+﻿const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 5174;
 const DIST_DIR = path.join(__dirname, 'dist');
+const API_PROXY_TARGET = process.env.API_PROXY_TARGET || 'http://localhost:5000';
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -58,9 +60,44 @@ const resolveFilePath = (baseDir, urlPath, urlPrefix) => {
   return fs.existsSync(fallbackPath) ? fallbackPath : null;
 };
 
+const proxyRequest = (clientReq, clientRes) => {
+  const targetUrl = new URL(API_PROXY_TARGET);
+  const isHttps = targetUrl.protocol === 'https:';
+  const proxyOptions = {
+    protocol: targetUrl.protocol,
+    hostname: targetUrl.hostname,
+    port: targetUrl.port || (isHttps ? 443 : 80),
+    path: clientReq.url,
+    method: clientReq.method,
+    headers: Object.assign({}, clientReq.headers)
+  };
+
+  const proxyLib = isHttps ? https : http;
+  const proxyReq = proxyLib.request(proxyOptions, (proxyRes) => {
+    // copy status and headers
+    clientRes.writeHead(proxyRes.statusCode, proxyRes.headers);
+    proxyRes.pipe(clientRes, { end: true });
+  });
+
+  proxyReq.on('error', (err) => {
+    console.error('Proxy error:', err);
+    clientRes.writeHead(502, { 'Content-Type': 'text/plain' });
+    clientRes.end('Bad Gateway');
+  });
+
+  // pipe request body
+  clientReq.pipe(proxyReq, { end: true });
+};
+
 const server = http.createServer((req, res) => {
   try {
     const requestPath = decodeURIComponent(req.url.split('?')[0]);
+
+    // Proxy API requests to backend
+    if (requestPath.startsWith('/api')) {
+      return proxyRequest(req, res);
+    }
+
     const { baseDir, urlPrefix } = selectDistFolder(requestPath);
     const filePath = resolveFilePath(baseDir, requestPath, urlPrefix);
 
@@ -71,6 +108,7 @@ const server = http.createServer((req, res) => {
 
     sendFile(res, filePath);
   } catch (error) {
+    console.error('Server error:', error);
     res.writeHead(500, { 'Content-Type': 'text/plain' });
     res.end('Server error');
   }
@@ -82,4 +120,5 @@ server.listen(PORT, () => {
   console.log('  Public website: /');
   console.log('  Admin dashboard: /admin/');
   console.log('  Doctor dashboard: /doctor/');
+  console.log('  API proxy target:', API_PROXY_TARGET);
 });

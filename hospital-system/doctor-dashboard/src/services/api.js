@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL
   || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api')
@@ -16,7 +16,8 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      const authHeader = 'Bearer ' + token
+      config.headers.Authorization = authHeader
     }
     return config
   },
@@ -32,23 +33,23 @@ api.interceptors.response.use(
       localStorage.removeItem('user')
       window.location.href = '/login'
     }
-    
+
     // Handle network errors
     if (error.code === 'ECONNABORTED') {
       console.error('Request timeout:', error.message)
       throw new Error('Request timeout. Please check your connection.')
     }
-    
+
     if (!error.response) {
       console.error('Network error:', error.message)
       throw new Error('Network error. Please check your connection.')
     }
-    
+
     // Handle specific error messages
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
                         'Something went wrong'
-    
+
     throw new Error(errorMessage)
   }
 )
