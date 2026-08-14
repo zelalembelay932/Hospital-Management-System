@@ -94,13 +94,13 @@ const Login = () => {
           <div className="mt-8 pt-6 border-t border-[#16C79A]/20">
             <p className="text-center text-sm text-[#16C79A]/80">
               For patient access, visit:{' '}
-              <a href="http://localhost:3000" className="text-[#16C79A] hover:text-white transition-colors underline">
+              <a href="/" className="text-[#16C79A] hover:text-white transition-colors underline">
                 Public Website
               </a>
             </p>
             <p className="text-center text-sm text-[#16C79A]/80 mt-2">
               Doctor portal:{' '}
-              <a href="http://localhost:3002" className="text-[#16C79A] hover:text-white transition-colors underline">
+              <a href="/doctor/login" className="text-[#16C79A] hover:text-white transition-colors underline">
                 Doctor Dashboard
               </a>
             </p>

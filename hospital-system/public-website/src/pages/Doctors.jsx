@@ -6,7 +6,7 @@ import {
   Stethoscope, Target, CheckCircle, Award as AwardIcon,
   TrendingUp, Zap, Users as UsersIcon, Sparkles
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 import { toast } from 'react-hot-toast';
 
 const Doctors = () => {
@@ -23,7 +23,7 @@ const Doctors = () => {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/doctors');
+      const response = await api.get('/doctors');
       
       if (Array.isArray(response.data)) {
         setDoctors(response.data.map(doctor => ({

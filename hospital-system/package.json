@@ -1,12 +1,19 @@
 {
-  "name": "hospital-system-root",
+  "name": "hospital-system",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build:public": "cd public-website && npm run build",
-    "build:admin": "cd admin-dashboard && npm run build",
-    "build:doctor": "cd doctor-dashboard && npm run build",
-    "build": "npm run build:public && npm run build:admin && npm run build:doctor",
+    "install:all": "npm install && npm install --prefix public-website && npm install --prefix admin-dashboard && npm install --prefix doctor-dashboard",
+    "dev": "concurrently -n public,admin,doctor -c blue,green,yellow \"npm run dev --prefix public-website\" \"npm run dev --prefix admin-dashboard\" \"npm run dev --prefix doctor-dashboard\"",
+    "dev:public": "npm run dev --prefix public-website",
+    "build:public": "npm run build --prefix public-website",
+    "build:admin": "npm run build --prefix admin-dashboard",
+    "build:doctor": "npm run build --prefix doctor-dashboard",
+    "build": "node scripts/build-deploy.js",
+    "preview": "node server.js",
     "start": "node server.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

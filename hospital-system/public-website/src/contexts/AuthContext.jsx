@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+﻿import React, { createContext, useState, useContext, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -18,68 +18,34 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        // Verify token with backend
-        const response = await axios.get('http://localhost:5000/api/auth/verify', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        if (response.data.user.role === 'patient') {
-          setUser(response.data.user);
-        } else {
-          localStorage.removeItem('token');
-          toast.error('Invalid user role');
-        }
-      } catch (error) {
+        const response = await api.get('/auth/me');
+        const returnedUser = response.data.user || response.data;
+        setUser(returnedUser);
+      } catch (err) {
+        console.error('Auth check failed:', err);
         localStorage.removeItem('token');
+        setUser(null);
       }
     }
     setLoading(false);
   };
 
   const login = async (email, password) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
-        email,
-        password
-      });
-      
-      if (response.data.user.role !== 'patient') {
-        throw new Error('Patient access only');
-      }
-
-      localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', userData);
-      
-      localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/auth/login', { email, password });
+    localStorage.setItem('token', response.data.token);
+    setUser(response.data.user);
+    return response.data;
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    toast.success('Logged out successfully');
+    toast.success('Logged out');
   };
 
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    loading
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

@@ -27,7 +27,8 @@ export const SocketProvider = ({ children }) => {
     }
 
     const user = JSON.parse(userStr);
-    const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+    const socketUrl = import.meta.env.VITE_SOCKET_URL
+      || (import.meta.env.PROD ? window.location.origin : 'http://localhost:5000');
 
     console.log('🔌 Connecting to socket server:', socketUrl);
 
