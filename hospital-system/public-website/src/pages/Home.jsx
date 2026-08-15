@@ -381,7 +381,7 @@ const Home = () => {
               <span className="text-lg font-semibold">Emergency? Call Now:</span>
             </div>
             <a 
-              href="tel:+252611234567" 
+              href="tel:+251994942373" 
               className="text-2xl font-bold hover:text-red-200 transition-colors flex items-center gap-2"
             >
               <Phone className="h-5 w-5" />

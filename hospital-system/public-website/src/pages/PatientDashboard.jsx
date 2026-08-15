@@ -41,8 +41,8 @@ const PatientDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [apptsRes, notesRes] = await Promise.all([
-        api.get('/appointments/my'),
-        api.get('/notifications/my')
+        api.get('/appointments/patient'),
+        api.get('/notifications/')
       ]);
       const appts = apptsRes?.data || [];
       const notes = notesRes?.data || [];

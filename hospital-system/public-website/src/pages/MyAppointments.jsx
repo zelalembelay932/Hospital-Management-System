@@ -16,7 +16,6 @@ import {
   FaEye,
   FaPhone,
   FaMapMarkerAlt,
-  FaDollarSign,
   FaHospital,
   FaUser,
   FaFileAlt,
@@ -46,7 +45,7 @@ const MyAppointments = () => {
 
   const fetchAppointments = async () => {
     try {
-      const res = await api.get('/appointments/my');
+      const res = await api.get('/appointments/patient');
       if (res && res.data) {
         setAppointments(Array.isArray(res.data) ? res.data : (res.data.appointments || res.data.data || []));
       }

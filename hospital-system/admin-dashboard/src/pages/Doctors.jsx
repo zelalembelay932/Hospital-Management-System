@@ -455,7 +455,7 @@ const Doctors = () => {
                     className="w-full px-4 py-3 bg-[#0d2c4a] border border-[#16C79A]/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#16C79A]"
                     value={newDoctor.phone}
                     onChange={(e) => setNewDoctor({...newDoctor, phone: e.target.value})}
-                    placeholder="+252 61 123 4567"
+                    placeholder="+251 91 123 4567"
                   />
                 </div>
               </div>
@@ -540,7 +540,7 @@ const Doctors = () => {
                     className="w-full px-4 py-3 bg-[#0d2c4a] border border-[#16C79A]/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#16C79A]"
                     value={editDoctor.phone}
                     onChange={(e) => setEditDoctor({...editDoctor, phone: e.target.value})}
-                    placeholder="+252 61 123 4567"
+                    placeholder="+251 91 123 4567"
                   />
                 </div>
                 

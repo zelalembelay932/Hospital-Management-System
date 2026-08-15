@@ -204,7 +204,7 @@ const Register = () => {
                     <input
                       type="tel"
                       className="w-full bg-gradient-to-r from-blue-50/50 to-blue-50/30 border border-blue-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500 group-hover:border-blue-300"
-                      placeholder="+252 61 123 4567"
+                      placeholder="+251 91 123 4567"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                     />

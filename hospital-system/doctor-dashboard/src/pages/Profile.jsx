@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { 
   User, Mail, Phone, MapPin, Briefcase, Award, Calendar, 
   Save, Upload, Camera, Edit2, Check, X, Lock, Bell, Trash2,
-  Stethoscope, DollarSign, Building, GraduationCap, Settings,
+  Stethoscope, Banknote, Building, GraduationCap, Settings,
   CheckCircle, XCircle, AlertTriangle, Clock, Users, Star,
   Target, Zap, Download, Share2, Printer, Heart, Shield,
   CreditCard, Globe, Moon, LogOut, Eye, EyeOff, Activity
@@ -259,9 +259,9 @@ const Profile = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#16C79A]/80">Consultation Fee</p>
-                    <p className="text-xl font-bold text-white">Birr -{formData.consultationFee || '0'}</p>
+                    <p className="text-xl font-bold text-white">Br {formData.consultationFee || '0'}</p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-[#16C79A]" />
+                  <Banknote className="h-8 w-8 text-[#16C79A]" />
                 </div>
               </div>
 
@@ -391,8 +391,8 @@ const Profile = () => {
                 />
                 
                 <ProfileField
-                  icon={<DollarSign />}
-                  label="Consultation Fee ($)"
+                  icon={<Banknote />}
+                  label="Consultation Fee (Br)"
                   value={formData.consultationFee}
                   fieldName="consultationFee"
                   type="number"

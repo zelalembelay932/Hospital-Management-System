@@ -137,7 +137,7 @@ const Contact = () => {
               </p>
               
               <a 
-                href="tel:+252611234567" 
+                href="tel:+251994942373" 
                 className="flex items-center justify-center gap-3 px-6 py-4 bg-white text-red-700 rounded-xl hover:bg-red-50 transition-all duration-300 font-bold text-xl shadow-lg"
               >
                 <Phone className="h-6 w-6" />

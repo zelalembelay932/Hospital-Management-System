@@ -35,7 +35,7 @@ const sendEmail = async (options) => {
         </div>
         <div style="background-color: #f1f1f1; padding: 15px; text-align: center; color: #666; font-size: 12px;">
           <p>&copy; ${new Date().getFullYear()} ShifoOnline Hospital. All rights reserved.</p>
-          <p>Contact: support@shifoonline.com | Phone: +252 61 123 4567</p>
+          <p>Contact: support@shifoonline.com | Phone: +251 91 123 4567</p>
         </div>
       </div>
     `

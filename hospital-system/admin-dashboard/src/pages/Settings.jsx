@@ -189,7 +189,7 @@ const Settings = () => {
                   value={settings.currency}
                   onChange={(e) => setSettings({...settings, currency: e.target.value})}
                 >
-                  <option value="USD" className="bg-[#0b3561]">Birr</option>
+                  <option value="ETB" className="bg-[#0b3561]">Birr (Br)</option>
                 </select>
               </div>
               
