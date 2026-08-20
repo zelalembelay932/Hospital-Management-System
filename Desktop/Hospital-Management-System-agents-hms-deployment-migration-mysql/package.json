@@ -1,0 +1,13 @@
+{
+  "name": "hospital-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm run install:all --prefix hospital-system",
+    "build": "npm run build --prefix hospital-system",
+    "dev:frontend": "npm run dev --prefix hospital-system",
+    "dev:backend": "npm run dev --prefix backend",
+    "start:backend": "npm start --prefix backend",
+    "preview": "npm run preview --prefix hospital-system"
+  }
+}
