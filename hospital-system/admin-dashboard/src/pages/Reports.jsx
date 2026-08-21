@@ -20,6 +20,7 @@ import {
     Filler
 } from 'chart.js';
 import reportService from '../services/reportService';
+import { downloadReportAsExcel, downloadReportAsPdf } from '../utils/reportExport';
 import toast from 'react-hot-toast';
 import StatCard from '../components/StatCard';
 
@@ -449,12 +450,65 @@ const Reports = () => {
         }
     };
 
+    const buildExportReport = () => {
+        const monthlyRows = (monthlyData?.labels || []).map((month, index) => [
+            month,
+            monthlyData?.datasets?.[0]?.data?.[index] ?? 0,
+            `Br ${(revenueData?.datasets?.[0]?.data?.[index] ?? 0).toLocaleString()}`
+        ]);
+        const doctorRows = (doctorPerformanceData?.labels || []).map((doctor, index) => [
+            doctor,
+            doctorPerformanceData?.datasets?.[0]?.data?.[index] ?? 0
+        ]);
+        const statusRows = (appointmentStatusData?.labels || []).map((status, index) => [
+            status,
+            appointmentStatusData?.datasets?.[0]?.data?.[index] ?? 0
+        ]);
+
+        return {
+            title: 'Hospital Management System Report',
+            generatedAt: new Date().toLocaleString(),
+            period: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report: ${dateRange.start} to ${dateRange.end}`,
+            summary: [
+                ['Report year', year],
+                ['Total revenue', `Br ${stats.totalRevenue.toLocaleString()}`],
+                ['Total appointments', stats.totalAppointments.toLocaleString()],
+                ['Total patients', stats.totalPatients.toLocaleString()],
+                ['Total doctors', stats.totalDoctors.toLocaleString()],
+                ['Monthly growth', `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth.toFixed(1)}%`]
+            ],
+            sections: [
+                { title: 'Monthly Activity and Revenue', columns: ['Month', 'Appointments', 'Revenue'], rows: monthlyRows },
+                { title: 'Doctor Performance', columns: ['Doctor', 'Completed appointments'], rows: doctorRows },
+                { title: 'Appointment Status', columns: ['Status', 'Appointments'], rows: statusRows }
+            ]
+        };
+    };
+
     // Export functions
     const exportReport = async (format) => {
-        toast.loading(`Exporting as ${format}...`);
-        setTimeout(() => {
-            toast.success(`Report exported as ${format} successfully!`);
-        }, 1500);
+        if (Object.values(errors).some(Boolean)) {
+            toast.error('Reports could not be exported because some live data failed to load. Refresh and try again.');
+            return;
+        }
+
+        const toastId = toast.loading(`Exporting as ${format}...`);
+        const fileBaseName = `hospital-report-${year}-${new Date().toISOString().slice(0, 10)}`;
+
+        try {
+            const report = buildExportReport();
+            if (format === 'PDF') {
+                downloadReportAsPdf(report, `${fileBaseName}.pdf`);
+            } else if (format === 'Excel') {
+                downloadReportAsExcel(report, `${fileBaseName}.xls`);
+            } else if (format === 'Print') {
+                window.print();
+            }
+            toast.success(`Report exported as ${format} successfully!`, { id: toastId });
+        } catch (error) {
+            console.error(`Failed to export ${format}:`, error);
+            toast.error(`Failed to export as ${format}. Please try again.`, { id: toastId });
+        }
     };
 
     // Generate report based on type
