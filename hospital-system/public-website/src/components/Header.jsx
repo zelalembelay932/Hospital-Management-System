@@ -60,6 +60,19 @@ const Header = () => {
               </Link>
             ))}
             
+            <div className="flex items-center gap-2 ml-2 pl-4 border-l border-gray-200">
+              {dashboardLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-blue-50"
+                >
+                  {link.icon}
+                  {link.label}
+                </a>
+              ))}
+            </div>
+
             {user ? (
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
                 <div className="flex items-center gap-2">
@@ -90,16 +103,6 @@ const Header = () => {
               </div>
             ) : (
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
-                {dashboardLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-blue-50"
-                  >
-                    {link.icon}
-                    {link.label}
-                  </a>
-                ))}
                 <Link
                   to="/login"
                   className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-blue-50"
@@ -153,6 +156,19 @@ const Header = () => {
 
               {/* User Actions */}
               <div className="border-t border-gray-100 pt-4 mt-2">
+                <div className="flex flex-col gap-3 px-4 pb-4">
+                  {dashboardLinks.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 font-medium"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {link.icon}
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
                 {user ? (
                   <>
                     {/* User Info */}
@@ -190,17 +206,6 @@ const Header = () => {
                   </>
                 ) : (
                   <div className="flex flex-col gap-3 px-4">
-                    {dashboardLinks.map((link) => (
-                      <a
-                        key={link.href}
-                        href={link.href}
-                        className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 font-medium"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {link.icon}
-                        {link.label}
-                      </a>
-                    ))}
                     <Link
                       to="/login"
                       className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 font-medium"

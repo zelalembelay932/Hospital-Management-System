@@ -41,10 +41,10 @@ app.get('/health', (req, res) => {
 const FRONTEND_DIST = path.join(__dirname, '../hospital-system/dist');
 
 const selectDistFolder = (urlPath) => {
-  if (urlPath.startsWith('/admin')) {
+  if (urlPath === '/admin' || urlPath.startsWith('/admin/')) {
     return { baseDir: path.join(FRONTEND_DIST, 'admin'), urlPrefix: '/admin' };
   }
-  if (urlPath.startsWith('/doctor')) {
+  if (urlPath === '/doctor' || urlPath.startsWith('/doctor/')) {
     return { baseDir: path.join(FRONTEND_DIST, 'doctor'), urlPrefix: '/doctor' };
   }
   return { baseDir: FRONTEND_DIST, urlPrefix: '' };
