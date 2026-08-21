@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "install:all": "npm install && npm install --prefix public-website && npm install --prefix admin-dashboard && npm install --prefix doctor-dashboard",
-    "dev": "concurrently -n public,admin,doctor -c blue,green,yellow \"npm run dev --prefix public-website\" \"npm run dev --prefix admin-dashboard\" \"npm run dev --prefix doctor-dashboard\"",
+    "install:all": "npm install --include=dev && npm install --include=dev --prefix public-website && npm install --include=dev --prefix admin-dashboard && npm install --include=dev --prefix doctor-dashboard",
+    "dev": "npm run dev:all",
+    "dev:all": "concurrently -n api,public,admin,doctor -c magenta,blue,green,yellow \"npm run dev --prefix ../backend\" \"npm run dev --prefix public-website\" \"npm run dev --prefix admin-dashboard\" \"npm run dev --prefix doctor-dashboard\"",
     "dev:public": "npm run dev --prefix public-website",
     "build:public": "npm run build --prefix public-website",
     "build:admin": "npm run build --prefix admin-dashboard",
