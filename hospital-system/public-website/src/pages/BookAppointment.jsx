@@ -20,7 +20,7 @@ const DEFAULT_TIME_SLOTS = [
   '03:00 PM'
 ];
 
-const today = new Date().toLocaleDateString('en-CA');
+const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)\n  .toISOString()\n  .slice(0, 10);
 
 const doctorId = (doctor) => doctor?.id ?? doctor?._id;
 
