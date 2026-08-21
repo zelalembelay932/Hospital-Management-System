@@ -1,12 +1,25 @@
 import api from './api'
 
+const normalizeUser = (user) => user ? {
+  ...user,
+  _id: user._id ?? user.id
+} : user
+
+const saveUser = (user) => {
+  const normalizedUser = normalizeUser(user)
+  if (normalizedUser) {
+    localStorage.setItem('user', JSON.stringify(normalizedUser))
+  }
+  return normalizedUser
+}
+
 export const authService = {
   // Doctor login
   login: async (email, password) => {
     const response = await api.post('/auth/doctor/login', { email, password })
     if (response.data.token) {
       localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
+      response.data.user = saveUser(response.data.user)
     }
     return response.data
   },
@@ -17,7 +30,7 @@ export const authService = {
       const response = await api.get('/auth/me')
       // Update localStorage with fresh data from server
       if (response.data) {
-        localStorage.setItem('user', JSON.stringify(response.data))
+        response.data.user = saveUser(response.data.user ?? response.data)
       }
       return response.data
     } catch (error) {
@@ -98,7 +111,7 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    window.location.href = '/login'
+    window.location.href = '/doctor/login'
   },
 
   // Check if user is authenticated
@@ -117,7 +130,7 @@ export const authService = {
     try {
       const response = await api.get('/auth/me')
       if (response.data) {
-        localStorage.setItem('user', JSON.stringify(response.data))
+        response.data.user = saveUser(response.data.user ?? response.data)
         return response.data
       }
     } catch (error) {

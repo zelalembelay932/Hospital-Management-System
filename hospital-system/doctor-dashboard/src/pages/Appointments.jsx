@@ -189,7 +189,7 @@ const Appointments = () => {
       )
     } catch (error) {
       console.error('Error updating appointment status:', error)
-      toast.error('Failed to update appointment')
+      toast.error(error.message || 'Failed to update appointment')
     }
   }
 

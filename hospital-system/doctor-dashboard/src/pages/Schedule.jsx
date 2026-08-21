@@ -20,7 +20,7 @@ const Schedule = () => {
     try {
       setLoading(true)
       const data = await appointmentService.getDoctorAppointments()
-      setAppointments(data.data || [])
+      setAppointments(data)
     } catch (error) {
       toast.error('Failed to fetch schedule')
     } finally {
@@ -342,10 +342,15 @@ const Schedule = () => {
               </button>
               {appointment.status === 'pending' && (
                 <button
-                  onClick={() => {
-                    appointmentService.updateAppointmentStatus(appointment._id, 'approved')
-                    onClose()
-                    fetchAppointments()
+                  onClick={async () => {
+                    try {
+                      await appointmentService.updateAppointmentStatus(appointment._id, 'approved')
+                      toast.success('Appointment approved successfully')
+                      onClose()
+                      fetchAppointments()
+                    } catch (error) {
+                      toast.error(error.message || 'Failed to approve appointment')
+                    }
                   }}
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-[#16C79A] to-[#11698E] text-white rounded-xl hover:opacity-90 transition-all duration-300"
                 >

@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const userData = await authService.getCurrentUser()
-          setUser(userData.user)
+          setUser(userData?.user ?? userData)
         } catch (error) {
           console.error('Failed to fetch user data:', error)
           localStorage.removeItem('token')

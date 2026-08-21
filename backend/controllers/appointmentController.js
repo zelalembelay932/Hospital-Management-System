@@ -4,6 +4,12 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 
 const getUserId = (req) => req.user?.userId || req.user?.id;
+const allowedDoctorTransitions = {
+    pending: ['approved', 'cancelled'],
+    approved: ['completed', 'cancelled'],
+    cancelled: [],
+    completed: []
+};
 
 const createAppointment = async (req, res) => {
     try {
@@ -121,18 +127,31 @@ const getDoctorAppointments = async (req, res) => {
 const updateAppointmentStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, notes } = req.body;
+
+        if (!['approved', 'cancelled', 'completed'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid appointment status' });
+        }
 
         const appointment = await Appointment.findByPk(id);
         if (!appointment) {
             return res.status(404).json({ message: 'Appointment not found' });
         }
 
-        if (req.user.role === 'doctor' && appointment.doctorId !== getUserId(req)) {
+        if (req.user.role === 'doctor' && Number(appointment.doctorId) !== Number(getUserId(req))) {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
+        if (req.user.role === 'doctor' && !allowedDoctorTransitions[appointment.status]?.includes(status)) {
+            return res.status(400).json({
+                message: `Cannot change a ${appointment.status} appointment to ${status}`
+            });
+        }
+
         appointment.status = status;
+        if (typeof notes === 'string' && notes.trim()) {
+            appointment.notes = notes.trim();
+        }
         await appointment.save();
 
         await Notification.create({
