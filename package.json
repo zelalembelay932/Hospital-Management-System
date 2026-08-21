@@ -2,12 +2,17 @@
   "name": "hospital-management-system",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.19.0 <25"
+  },
   "scripts": {
-    "install:all": "npm install --prefix backend && npm run install:all --prefix hospital-system",
-    "build": "npm run build --prefix hospital-system",
+    "install:all": "npm install --include=dev && npm install --include=dev --prefix backend && npm run install:all --prefix hospital-system",
+    "dev": "npm run dev:all --prefix hospital-system",
     "dev:frontend": "npm run dev --prefix hospital-system",
     "dev:backend": "npm run dev --prefix backend",
-    "start:backend": "npm start --prefix backend",
+    "build": "npm run build --prefix hospital-system",
+    "prebuild": "npm run install:all",
+    "start": "node backend/server.js",
     "preview": "npm run preview --prefix hospital-system"
   }
 }
