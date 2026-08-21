@@ -34,10 +34,10 @@ const sendFile = (res, filePath) => {
 };
 
 const selectDistFolder = (urlPath) => {
-  if (urlPath.startsWith('/admin')) {
+  if (urlPath === '/admin' || urlPath.startsWith('/admin/')) {
     return { baseDir: path.join(DIST_DIR, 'admin'), urlPrefix: '/admin' };
   }
-  if (urlPath.startsWith('/doctor')) {
+  if (urlPath === '/doctor' || urlPath.startsWith('/doctor/')) {
     return { baseDir: path.join(DIST_DIR, 'doctor'), urlPrefix: '/doctor' };
   }
   return { baseDir: DIST_DIR, urlPrefix: '' };
