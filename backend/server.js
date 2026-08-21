@@ -27,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 connectDB();
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/doctors', require('./routes/doctorRoutes'));
