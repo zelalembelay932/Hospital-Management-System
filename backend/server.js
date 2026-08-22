@@ -38,7 +38,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });
 
-const FRONTEND_DIST = path.join(__dirname, '../hospital-system/dist');
+// const FRONTEND_DIST = path.join(__dirname, '../hospital-system/dist');
+const FRONTEND_DIST = path.join(__dirname, "public");
 
 const selectDistFolder = (urlPath) => {
   if (urlPath === '/admin' || urlPath.startsWith('/admin/')) {

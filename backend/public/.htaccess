@@ -1,0 +1,19 @@
+# Hospital Management System - SPA routing for Hostinger/Apache
+RewriteEngine On
+
+# API requests should not be rewritten (handled by backend when using Node.js hosting)
+RewriteRule ^api/ - [L]
+
+# Serve existing files/directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Admin dashboard SPA fallback
+RewriteRule ^admin(/.*)?$ admin/index.html [L]
+
+# Doctor dashboard SPA fallback
+RewriteRule ^doctor(/.*)?$ doctor/index.html [L]
+
+# Public website SPA fallback
+RewriteRule ^ index.html [L]
